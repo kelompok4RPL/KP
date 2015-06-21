@@ -1,5 +1,5 @@
 <?php
-namespace DataDriver;
+namespace Core\App\Database{
 class DataDriver {
     private $config = [
 	"dbEngine" => "postgre",
@@ -44,7 +44,7 @@ class DataDriver {
         $this->pFetchAssoc=$this->dbPrefix."_fetch_assoc";
     }
     
-    function Connection(){
+    function OpenConnection(){
         $fx=$this->dbPrefix."_connect";
         $_host=$this->host;
         $_user=$this->username;
@@ -70,15 +70,56 @@ class DataDriver {
         return $this->status;
     }
     
-    function selectQuery($tabel){
-	$this->dbQuery = "SELECT * FROM ".$this->namaTabel."";
+    function selectQuery($tabel, array $where=NULL){
+	$this->dbQuery = "SELECT * FROM ".$tabel;
+        if ($where!=NULL){
+            $this->dbQuery.=" WHERE ";
+            foreach ($where as $key => $value){
+                $this->dbQuery.= "$key = '$value', ";
+            }
+        }
         $this->status = $this->pQuery($this->dbCon,$this->dbQuery);
         while ($row= $this->pFetchAssoc($this->status)) {
             $this->dataRow[]=$row;
         }
         return $this->dataRow;
     }
+    function ambilDenganLimit($limit, $posisi=NULL){
+        $pQuery=$this->dbPrefix."_query";
+	$pFetchAssoc=$this->dbPrefix."_fetch_assoc";
+	if (isset($posisi)) {
+            $this->dbQuery = "SELECT * FROM ".$this->namaTabel." LIMIT ".$posisi.", ".$limit."";
+        }
+        else {
+            $this->dbQuery = "SELECT * FROM ".$this->namaTabel." LIMIT ".$limit."";
+        }
+        $this->status = $pQuery($this->dbCon,$this->dbQuery);
+        while ($row=  $pFetchAssoc($this->status)) {
+            $this->dataRow[]=$row;
+        }
+        return $this->dataRow;
+    }
+    function editBerdasarkan($tabel, array $kolom){
+	$pQuery=$this->dbPrefix."_query";
+        $this->dbQuery = "UPDATE ".$tabel." SET ";
+        foreach ($this->record as $key => $value){
+            $this->dbQuery.= "$key ='$value',";
+        }
+        $this->dbQuery = rtrim($this->dbQuery, ',');
+        $this->dbQuery.= " WHERE";
+        foreach ($kolom as $key => $value){
+            $this->dbQuery.= " $key = '$value' AND";
+        }
+        $this->dbQuery = rtrim($this->dbQuery, 'AND');
+        $this->status = $pQuery($this->dbCon,$this->dbQuery);
+    }
+    function hapusSemua($tabel){
+	$pQuery=$this->dbPrefix."_query";
+        $this->dbQuery = "DELETE FROM ".$tabel;
+	$this->status = $pQuery($this->dbCon,$this->dbQuery);
+    }
     function siapkanRecord(array $_record){
         $this->record = $_record;
     }
+}
 }
