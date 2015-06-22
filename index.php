@@ -12,7 +12,7 @@ and open the template in the editor.
     <body>
         <?php
 		include 'Autoload.php';
-		use Core\App\Coba as Application;
+		use Core\App\Application as Application;
                 $app = new Application();
                 $app->Run();
 		

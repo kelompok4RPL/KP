@@ -1,13 +1,13 @@
 <?php
-namespace Core\App\Database{
+namespace Core\Database;
 class DataDriver {
     private $config = [
-	"dbEngine" => "postgre",
+	"dbEngine" => "mysqli",
 	"host" => "localhost",
-	"username" => "postgres",
-	"password" => "matiuslogin",
-	"db"=>"labs",
-	"port" => "5432"
+	"username" => "root",
+	"password" => "",
+	"db"=>"kp_rpl",
+	"port" => ""
     ];
     private $dbPrefix;
     private $host;
@@ -23,13 +23,14 @@ class DataDriver {
     private $pQuery;
     private $pFetchAssoc;
             
-    function __construct(){
+    function __construct($query=NULL){
         $this->host = $this->config['host'];
 	$this->username = $this->config['username'];
 	$this->password = $this->config['password'];
 	$this->port = $this->config['port'];
 	$this->dbName = $this->config['db'];
         $dbengine = $this->config['dbEngine'];
+        $this->dbQuery=$query;
         
 	if($dbengine=="mysqli"){
             $this->dbPrefix="mysqli";
@@ -42,8 +43,13 @@ class DataDriver {
         }
         $this->pQuery=$this->dbPrefix."_query";
         $this->pFetchAssoc=$this->dbPrefix."_fetch_assoc";
+        $this->OpenConnection();
     }
-    
+    function tes(){
+        $x = $this->pQuery;
+        $x();
+    }
+            
     function OpenConnection(){
         $fx=$this->dbPrefix."_connect";
         $_host=$this->host;
@@ -66,52 +72,53 @@ class DataDriver {
             $this->dbQuery.= "$key = '$value', ";
         }
         $this->dbQuery = rtrim($this->dbQuery, ', ');
-        $this->status = $this->pQuery($this->dbCon,$this->dbQuery);
-        return $this->status;
+        //$this->status = $query($this->dbCon,$this->dbQuery);
+       // return $this->status;
+        return new DataDriver($this->dbQuery);
     }
     
-    function selectQuery($tabel, array $where=NULL){
-	$this->dbQuery = "SELECT * FROM ".$tabel;
-        if ($where!=NULL){
-            $this->dbQuery.=" WHERE ";
-            foreach ($where as $key => $value){
-                $this->dbQuery.= "$key = '$value', ";
+    function selectQuery($tabel, array $kolom=NULL){
+        if($kolom!=NULL){
+            $this->dbQuery="SELECT ";
+            foreach ($kolom as $kol){
+                $this->dbQuery.="$kol, ";
             }
+            $this->dbQuery = rtrim($this->dbQuery, ', ');
+            $this->dbQuery.=" FROM ".$tabel;
         }
-        $this->status = $this->pQuery($this->dbCon,$this->dbQuery);
-        while ($row= $this->pFetchAssoc($this->status)) {
-            $this->dataRow[]=$row;
+	else {
+            $this->dbQuery = "SELECT * FROM ".$tabel;
         }
-        return $this->dataRow;
+        return new DataDriver($this->dbQuery);
     }
-    function ambilDenganLimit($limit, $posisi=NULL){
-        $pQuery=$this->dbPrefix."_query";
-	$pFetchAssoc=$this->dbPrefix."_fetch_assoc";
+    function deleteQuery($tabel){
+       $this->dbQuery="DELETE FROM $tabel";
+       return new DataDriver($this->dbQuery);
+    }
+    function Limit($limit, $posisi=NULL){
 	if (isset($posisi)) {
-            $this->dbQuery = "SELECT * FROM ".$this->namaTabel." LIMIT ".$posisi.", ".$limit."";
+            $this->dbQuery .=" LIMIT ".$posisi.", ".$limit."";
         }
         else {
-            $this->dbQuery = "SELECT * FROM ".$this->namaTabel." LIMIT ".$limit."";
+            $this->dbQuery .= " LIMIT ".$limit."";
         }
-        $this->status = $pQuery($this->dbCon,$this->dbQuery);
-        while ($row=  $pFetchAssoc($this->status)) {
-            $this->dataRow[]=$row;
-        }
-        return $this->dataRow;
+        return new DataDriver($this->dbQuery);
     }
-    function editBerdasarkan($tabel, array $kolom){
-	$pQuery=$this->dbPrefix."_query";
-        $this->dbQuery = "UPDATE ".$tabel." SET ";
-        foreach ($this->record as $key => $value){
-            $this->dbQuery.= "$key ='$value',";
-        }
-        $this->dbQuery = rtrim($this->dbQuery, ',');
+    function where (array $kolom){
         $this->dbQuery.= " WHERE";
         foreach ($kolom as $key => $value){
             $this->dbQuery.= " $key = '$value' AND";
         }
         $this->dbQuery = rtrim($this->dbQuery, 'AND');
-        $this->status = $pQuery($this->dbCon,$this->dbQuery);
+        return new DataDriver($this->dbQuery);
+    }
+    function updateQuery($tabel){
+        $this->dbQuery = "UPDATE ".$tabel." SET ";
+        foreach ($this->record as $key => $value){
+            $this->dbQuery.= "$key ='$value',";
+        }
+        $this->dbQuery = rtrim($this->dbQuery, ',');
+       return new DataDriver($this->dbQuery);
     }
     function hapusSemua($tabel){
 	$pQuery=$this->dbPrefix."_query";
@@ -121,5 +128,20 @@ class DataDriver {
     function siapkanRecord(array $_record){
         $this->record = $_record;
     }
-}
+    function get(){
+        $query = $this->pQuery;
+        $pf=  $this->pFetchAssoc;
+        $this->status = $query($this->dbCon,$this->dbQuery);
+        while ($row= $pf($this->status)) {
+            $this->dataRow[]=$row;
+        }
+        return $this->dataRow;
+        
+    }
+    function eksekusi(){
+        $query = $this->pQuery;
+        $this->status = $query($this->dbCon,$this->dbQuery);
+        return $this->status;
+        //echo $this->dbQuery;
+    }
 }
