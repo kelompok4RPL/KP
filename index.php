@@ -11,10 +11,12 @@ and open the template in the editor.
     </head>
     <body>
         <?php
+        session_start();
 		include 'Autoload.php';
 		use Core\App\Application as Application;
                 $app = new Application();
                 $app->Run();
+                echo $app->userid;
 		
         ?>
     </body>

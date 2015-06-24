@@ -17,7 +17,7 @@ class DataDriver {
     private $dbName;
     private $dbCon;
     private $record = [];    
-    private $dbQuery;
+    public $dbQuery;
     private $status;
     private $dataRow = [];
     private $pQuery;
@@ -128,13 +128,35 @@ class DataDriver {
     function siapkanRecord(array $_record){
         $this->record = $_record;
     }
-    function get(){
+    function selectMultiple(array $tabel, array $koloms){
+        $this->dbQuery="SELECT ";
+        foreach ($koloms as $kol){
+            $this->dbQuery.="$kol, ";
+        }
+        $this->dbQuery = rtrim($this->dbQuery, ', ');
+        $this->dbQuery.=" FROM ";
+        foreach ($tabel as $tab){
+            $this->dbQuery.="$tab, ";
+        }
+        $this->dbQuery = rtrim($this->dbQuery, ', ');
+        return new DataDriver($this->dbQuery);
+    }
+    function join(array $koloms){
+        $this->dbQuery .=" AND";
+        foreach ($koloms as $key => $value){
+            $this->dbQuery.= " $key = $value AND";
+        }
+        $this->dbQuery = rtrim($this->dbQuery, 'AND');
+        return new DataDriver($this->dbQuery);
+    }
+            function get(){
         $query = $this->pQuery;
         $pf=  $this->pFetchAssoc;
         $this->status = $query($this->dbCon,$this->dbQuery);
         while ($row= $pf($this->status)) {
             $this->dataRow[]=$row;
         }
+        //echo $this->dbQuery;
         return $this->dataRow;
         
     }

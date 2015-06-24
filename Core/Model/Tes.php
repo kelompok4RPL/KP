@@ -13,5 +13,7 @@
  */
 namespace Core\Model;
 class Tes extends Model{
-    //put your code here
+    function Oke(){
+        return $this->relasiDengan("Oke", "id", "idoke");
+    }
 }

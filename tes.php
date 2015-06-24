@@ -8,12 +8,19 @@ $data=[
 $db = new DB();
 $db->siapkanRecord($data);
 echo var_dump($db->selectQuery("INFORMATION_SCHEMA.COLUMNS",["COLUMN_NAME"])->where(["table_name"=>"tes"])->get());*/
-use Core\Model as Model;
-$mhs = new Model\Tes();
-$mhs->hapus();
-$mhs1=$mhs->getDariPrimary(69);
-$mhs1->nm=77;
-$mhs->x = 100;
-$mhs1->hapus();
-//var_dump($mhs1);
+use Core\Model\Model as Model;
+$mhs = new Model\user();
+$mhsx = $mhs->getDariPrimary("matiusnugroho");
+echo $mhsx->role;
+
+/*$x="Mahasiswa";
+$role = "Core\\App\\Roles\\".$x."Role";
+$xc=new $role();
+//var_dump($xc);
+
+$user = new Model\user();
+$user = $user->getDariPrimary(1110962023);
+echo var_dump($user);*/
+
+//var_dump($mahasiswas);
 
